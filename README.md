@@ -11,5 +11,5 @@
 
 ## Как найти ваш сервер
 
- IP-адрес сервера: 178.154.225.70
- домен: eugene.students.nomoreparties.xyz
+ IP-адрес сервера: 178.154.225.122
+ домен: autumnleave.students.nomoreparties.xyz
