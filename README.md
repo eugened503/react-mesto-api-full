@@ -11,5 +11,8 @@
 
 ## Как найти ваш сервер
 
- IP-адрес сервера: 178.154.225.122
- домен: autumnleave.students.nomoreparties.xyz
+ `IP-адрес сервера:` 178.154.225.122
+ 
+ `домен для фронтенда:` autumnleave.students.nomoreparties.xyz или www.autumnleave.students.nomoreparties.xyz
+
+ `домен для бэкенда:` api.autum.students.nomoreparties.xyz или api.www.autum.students.nomoreparties.xyz
