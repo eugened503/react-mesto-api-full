@@ -1,9 +1,8 @@
 /* eslint-disable */
-
+const mongoose = require('mongoose');
 const Card = require('../models/cards');
 const NotFoundError = require('../errors/not-found-err');
 const ValidationError = require('../errors/validation-err');
-const Unauthorized = require('../errors/unauthorized-err');
 const Forbidden = require('../errors/forbidden-err');
 
 module.exports.createCard = (req, res, next) => { //создаем карточку
@@ -28,6 +27,9 @@ module.exports.getAllCards = (req, res, next) => { //получаем все к�
 };
 
 module.exports.deleteCard = (req, res, next) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+    throw new ValidationError('Некорректный id карточки');
+  }
   //удаляем карточку по id
   Card.findById(req.params.cardId)
     .orFail(new Error('NotValidId'))
@@ -44,11 +46,6 @@ module.exports.deleteCard = (req, res, next) => {
       if (err.message === 'NotValidId') {
         next(new NotFoundError('Пользователя нет в базе'));
         return;
-      }
-      if (err.name === 'CastError') {
-        next(new ValidationError('Переданы некорректные данные в метод удаления карточки'))
-        return;
-
       } else {
         next(err);
       }

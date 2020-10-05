@@ -1,17 +1,20 @@
 /* eslint-disable */
 const bcrypt = require('bcryptjs'); // импортируем bcrypt
+const mongoose = require('mongoose');
 const User = require('../models/users');
-const jwt = require('jsonwebtoken'); // импортируем модуль jsonwebtoken
 const NotFoundError = require('../errors/not-found-err');
 const ValidationError = require('../errors/validation-err');
-const Unauthorized = require('../errors/unauthorized-err');
+const ConflictingRequest  = require('../errors/conflicting-err');
+
+const jwt = require('jsonwebtoken'); // импортируем модуль jsonwebtoken
+const { JWT_SECRET, NODE_ENV } = process.env;
 
 module.exports.createUser = (req, res, next) => { //создать пользователя
   const { name, about, avatar, email, password } = req.body;
   User.findOne({ email })
     .then((newUser) => {
       if (newUser) {
-        throw new Unauthorized('Электронная почта уже существует');
+        throw new ConflictingRequest('Электронная почта уже существует');
       }
       bcrypt.hash(password, 10)
         .then((hash) => User.create({ name, about, avatar, email, password: hash }))
@@ -23,6 +26,7 @@ module.exports.createUser = (req, res, next) => { //создать пользо�
           email: user.email,
         }))
         .catch((err) => {
+          console.log(err);
           if (err.name === 'ValidationError') {
             next(new ValidationError(err.message));
             return;
@@ -36,6 +40,9 @@ module.exports.createUser = (req, res, next) => { //создать пользо�
 };
 
 module.exports.getIdUser = (req, res, next) => {  //получить пользователя по id
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    throw new ValidationError('Некорректный id юзера');
+  }
   User.findById(req.params.id)
     .then((user) => {
       if (!user) {
@@ -99,12 +106,14 @@ module.exports.login = (req, res, next) => {
   return User.findUserByCredentials(email, password)
     .then((user) => {
       // создадим токен
-      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
       // вернём токен
       res
         .cookie('jwt', token, {
           maxAge: 3600000 * 24 * 7,
-          httpOnly: true
+          httpOnly: true,
+          sameSite: true,
+          secure: NODE_ENV === 'production',
         })
         .send({ token });
     })
